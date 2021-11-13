@@ -1,5 +1,8 @@
 package com.mashibing.netty.study.reflection.jdbc020;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +15,8 @@ import java.util.List;
  */
 public class ReflectionMain {
 
+    private static final Logger logger = LoggerFactory.getLogger(ReflectionMain.class);
+
     public static void main(String[] args) throws Exception{
         Connection connection = JdbcUtil.getConnection();
 
@@ -23,9 +28,15 @@ public class ReflectionMain {
 
         long t1 = System.currentTimeMillis();
 
-        while (resultSet.next()){
-            UserEntity userEntity = Entity_Helper.getUserEntity(resultSet,UserEntity.class);
+        AbstractEntityHelper entityHelper = EntityHelperFactory.getEntityHelper(UserEntity.class);
 
+        if(entityHelper == null){
+            logger.error("找不到对应的helper:"+UserEntity.class.getName());
+            return;
+        }
+
+        while (resultSet.next()){
+            UserEntity userEntity = (UserEntity) entityHelper.getEntity(resultSet);
             if(userEntity != null){
                 userEntities.add(userEntity);
             }
